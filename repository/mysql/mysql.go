@@ -158,17 +158,19 @@ func (d *Repository) PollTasks(ctx context.Context, types, queues []string, visi
 				type IN (:pollTypes) AND
 				queue IN (:pollQueues) AND 
 				status IN (:pollStatuses) AND 
-				visible_at <= :pollTime
+				visible_at <= :pollTime AND
+				(lock_expires is NULL OR lock_expires <= now())
 			ORDER BY
 				:pollOrdering
 			LIMIT :pollLimit
-			FOR UPDATE SKIP LOCKED;`
+			FOR UPDATE;`
 		updatePolledTasksSQLTemplate = `UPDATE 
 				{{.tableName}} 
 			SET
 				status = :status,
 				receive_count = receive_count + 1,
-				visible_at = :visibleAt
+				visible_at = :visibleAt,
+				lock_expires = now()
 			WHERE
 				id IN (:polledTaskIDs);`
 		selectUpdatedPolledTasksSQLTemplate = `SELECT 
@@ -752,6 +754,7 @@ func (d *Repository) migrateTable(ctx context.Context) error {
             started_at datetime(6),
             finished_at datetime(6),
             visible_at datetime(6) NOT NULL DEFAULT '0001-01-01 00:00:00.000000',
+            lock_expires datetime(6),
             PRIMARY KEY (id)
 		);`
 

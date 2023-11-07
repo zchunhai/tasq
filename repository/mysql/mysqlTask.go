@@ -67,6 +67,7 @@ type mySQLTask struct {
 	StartedAt    sql.NullString  `db:"started_at"`
 	FinishedAt   sql.NullString  `db:"finished_at"`
 	VisibleAt    string          `db:"visible_at"`
+	LockExpires  sql.NullString  `db:"lock_expires"`
 }
 
 func newFromTask(task *tasq.Task) *mySQLTask {
