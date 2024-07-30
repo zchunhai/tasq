@@ -343,12 +343,14 @@ func (c *Consumer) removeFromActiveTasks(task *Task) {
 }
 
 func (c *Consumer) getActiveTaskIDs() []uuid.UUID {
+	c.activeMutex.Lock()
 	activeTaskIDs := make([]uuid.UUID, 0, len(c.activeTasks))
 
 	for taskID := range c.activeTasks {
 		activeTaskIDs = append(activeTaskIDs, taskID)
 	}
 
+	c.activeMutex.Unlock()
 	return activeTaskIDs
 }
 
